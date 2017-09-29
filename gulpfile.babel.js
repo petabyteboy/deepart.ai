@@ -1,24 +1,17 @@
 import gulp from 'gulp'
 import sass from 'gulp-sass'
 import cleanCss from 'gulp-clean-css'
-import babel from 'babelify'
-import composer from 'gulp-uglify/composer'
-import uglifyES from 'uglify-es'
 import autoprefixer from 'gulp-autoprefixer'
-import concat from 'gulp-concat'
 import htmlmin from 'gulp-htmlmin'
 import sourcemaps from 'gulp-sourcemaps'
 import browserSync from 'browser-sync'
-import clean from 'gulp-clean'
 import pump from 'pump'
 import rimraf from 'rimraf'
-import browserify from 'browserify'
-import source from 'vinyl-source-stream'
-import buffer from 'vinyl-buffer'
-import moduleImporter from 'sass-module-importer'
+import rollup from 'gulp-rollup'
+import rollupResolve from 'rollup-plugin-node-resolve'
+import rollupBabel from 'rollup-plugin-babel'
 
 const browsers = ['>1% in DE']
-const uglify = composer(uglifyES, console)
 
 gulp.task('clean', () => {
   rimraf.sync('dev')
@@ -27,16 +20,29 @@ gulp.task('clean', () => {
 
 gulp.task('scripts', (cb) => {
   pump([
-    browserify({
-      entries: 'app/scripts/main.js'
-    }).transform(babel.configure({
-          presets: [['env', {targets: {browsers: browsers}}]]
-    })).bundle(),
-    source('app/scripts/main.js'),
-    buffer(),
+    gulp.src('app/scripts/main.js'),
     sourcemaps.init(),
-    concat('main.js'),
-    uglify(),
+    rollup({
+      allowRealFiles: true,
+      input: 'app/scripts/main.js',
+      format: 'iife',
+      plugins: [
+        rollupResolve(),
+        rollupBabel({
+          babelrc: false,
+          presets: [
+            [
+              'env',
+              {
+                targets: {browsers: browsers},
+                modules: false
+              }
+            ]
+          ],
+          plugins: ['external-helpers']
+        }),
+      ]
+    }),
     gulp.dest('dist'),
     sourcemaps.write(),
     gulp.dest('dev')
@@ -48,7 +54,10 @@ gulp.task('styles', (cb) => {
     gulp.src('app/styles/main.scss'),
     sourcemaps.init(),
     sass({
-      importer: moduleImporter
+      includePaths: [
+        __dirname + '/bower_components',
+        __dirname + '/node_modules'
+      ]
     }),
     autoprefixer({
       browsers: browsers
