@@ -4,13 +4,12 @@
 		<meta name=viewport content="width=device-width, initial-scale=1, user-scalable=no"></meta>
 		<link rel="manifest" href="manifest.json"></link>
 		<link rel="icon" type="image/png" href="favicon.png" sizes="512x512"></link>
-		<title>My App</title>
+		<title>Clock</title>
+		<style>${INLINE_CSS}</style>
 	</head>
 	<body>
-		<link rel="stylesheet" href="main.css">
-
-		<!-- content -->
-
+		<div id="clock"></div>
+		<footer><span id="version">version ${GIT_REVISION}</span>
 		<script async src="main.js"></script>
 	</body>
 </html>

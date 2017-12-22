@@ -1,6 +1,5 @@
 {
-	"name": "My App",
-	"short_name": "My App",
+	"name": "Clock",
 	"start_url": ".",
 	"icons": [
 		{

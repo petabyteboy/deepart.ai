@@ -1,34 +1,41 @@
 import gulp from 'gulp'
-import sass from 'gulp-sass'
-import cleanCss from 'gulp-clean-css'
-import autoprefixer from 'gulp-autoprefixer'
-import htmlmin from 'gulp-htmlmin'
-import sourcemaps from 'gulp-sourcemaps'
-import browserSync from 'browser-sync'
 import pump from 'pump'
 import rimraf from 'rimraf'
-import rollup from 'gulp-rollup'
-import rollupResolve from 'rollup-plugin-node-resolve'
-import rollupBabel from 'rollup-plugin-babel'
+import rollupPluginBabel from 'rollup-plugin-babel'
+import rollupPluginUglify from 'rollup-plugin-uglify'
+import rollupPluginResolve from 'rollup-plugin-node-resolve'
+import cleanCss from 'postcss-clean'
+import normalize from 'postcss-normalize'
+import autoprefixer from 'autoprefixer'
+import { minify }  from 'uglify-es'
+import { execSync } from 'child_process'
+import { readFileSync } from 'fs'
 
+const loadGulpPlugins = require('gulp-load-plugins')
+const gulpPlugins = loadGulpPlugins()
 const browsers = ['>1% in DE']
 
+function gitRevision() {
+  return execSync('git describe --tags --always --abbrev=7 --dirty', { cwd: __dirname }).toString().trim()
+}
+
 gulp.task('clean', () => {
+  rimraf.sync('tmp')
   rimraf.sync('dev')
   rimraf.sync('dist')
 })
 
-gulp.task('scripts', (cb) => {
+gulp.task('js', (cb) => {
   pump([
-    gulp.src('app/scripts/main.js'),
-    sourcemaps.init(),
-    rollup({
+    gulp.src('app/main.js'),
+    gulpPlugins.sourcemaps.init(),
+    gulpPlugins.rollup({
       allowRealFiles: true,
-      input: 'app/scripts/main.js',
+      input: 'app/main.js',
       format: 'iife',
       plugins: [
-        rollupResolve(),
-        rollupBabel({
+        rollupPluginResolve(),
+        rollupPluginBabel({
           babelrc: false,
           presets: [
             [
@@ -41,64 +48,90 @@ gulp.task('scripts', (cb) => {
           ],
           plugins: ['external-helpers']
         }),
+        rollupPluginUglify({
+          toplevel: true
+        }, minify)
       ]
     }),
     gulp.dest('dist'),
-    sourcemaps.write(),
+    gulpPlugins.sourcemaps.write(),
     gulp.dest('dev')
   ], cb)
 })
 
-gulp.task('styles', (cb) => {
+gulp.task('sw', (cb) => {
   pump([
-    gulp.src('app/styles/main.scss'),
-    sourcemaps.init(),
-    sass({
-      includePaths: [
-        __dirname + '/bower_components',
-        __dirname + '/node_modules'
+    gulp.src('app/sw.js'),
+    gulpPlugins.sourcemaps.init(),
+    gulpPlugins.rollup({
+      allowRealFiles: true,
+      input: 'app/sw.js',
+      format: 'es',
+      plugins: [
+        rollupPluginUglify({
+          toplevel: true
+        }, minify)
       ]
     }),
-    autoprefixer({
-      browsers: browsers
-    }),
-    cleanCss(),
+    gulpPlugins.replace('${BUILD_DATE}', new Date().valueOf()),
     gulp.dest('dist'),
-    sourcemaps.write(),
-    gulp.dest('dev'),
-    browserSync.stream()
+    gulpPlugins.sourcemaps.write(),
+    gulp.dest('dev')
+  ], cb)
+})
+
+gulp.task('css', (cb) => {
+  pump([
+    gulp.src('app/main.css'),
+    gulpPlugins.sourcemaps.init(),
+    gulpPlugins.postcss([
+      autoprefixer({
+        browsers: browsers
+      }),
+      normalize({
+        browsers: browsers
+      }),
+      cleanCss()
+    ]),
+    gulp.dest('tmp')
   ], cb)
 })
 
 gulp.task('copy', (cb) => {
   pump([
-    gulp.src(['app/**', '!app/**/*.{html,css,scss,js}'], {dot: true}),
+    gulp.src(['app/**', '!app/*.{html,css,js,json}'], {dot: true}),
     gulp.dest('dist'),
     gulp.dest('dev')
   ], cb)
 })
 
-gulp.task('html', (cb) => {
+gulp.task('html', ['css'], (cb) => {
   pump([
-    gulp.src('app/**/*.html'),
-    htmlmin(),
+    gulp.src('app/*.html'),
+    gulpPlugins.htmlmin({collapseWhitespace: true}),
+    gulpPlugins.replace('${GIT_REVISION}', gitRevision()),
+    gulpPlugins.replace('${INLINE_CSS}', readFileSync('tmp/main.css')),
     gulp.dest('dist'),
     gulp.dest('dev')
   ], cb)
 })
 
-gulp.task('serve', ['dist'], () => {
-  browserSync.init({
-    server: {
-      baseDir: 'dev'
-    }
-  })
-
-  gulp.watch('app/**/*.html', ['html', browserSync.reload])
-  gulp.watch('app/**/*.js', ['scripts', browserSync.reload])
-  gulp.watch('app/**/*.{scss,css}', ['styles'])
+gulp.task('manifest', (cb) => {
+  pump([
+    gulp.src('app/*.json'),
+    gulpPlugins.jsonminify(),
+    gulp.dest('dist'),
+    gulp.dest('dev')
+  ], cb)
 })
 
-gulp.task('dist', ['clean', 'scripts', 'styles', 'copy', 'html'])
+gulp.task('watch', ['dist'], () => {
+  gulp.watch('app/*.js', ['js', 'html', 'sw'])
+  gulp.watch('app/*.{css,html}', ['html', 'sw'])
+  gulp.watch('app/*.json', ['manifest', 'html', 'sw'])
+  gulp.watch('app/sw.js', ['html', 'sw'])
+})
+
+gulp.task('dist', ['clean', 'copy', 'js', 'html', 'manifest', 'sw'])
 
 gulp.task('default', ['dist'])
