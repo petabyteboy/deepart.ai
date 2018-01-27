@@ -1,10 +1,9 @@
 #!/usr/bin/node
 
-'use strict'
+'use strict';
 
-const WebServer = require('./modules/webserver')
+const WebServer = require('./modules/webserver');
 
-//global.debug = true
+// global.debug = true
 
-const server = new WebServer(global.debug ? './dev' : './dist').listen(8080)
-
+new WebServer(global.debug ? './dev' : './dist').listen(8080);
