@@ -33,7 +33,7 @@ http {
 		}
 
 		location /api/ {
-			proxy_pass https://foo.bar/api/;
+			proxy_pass https://service/api/;
 		}
 	}
 }
