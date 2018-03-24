@@ -4,17 +4,21 @@ class Router {
 	constructor() {
 		this.routes = [];
 
+		window.onpopstate = (evt) => {
+			this.go(window.location.pathname);
+		};
+
 		document.onclick = (evt) => {
 			if (evt.path) {
 				for (let el of evt.path) {
-					if (el.href && el.href.startsWith(window.location.origin) && this.go(el.href)) {
+					if (el.href && el.href.startsWith(window.location.origin) && this.go(el.pathname)) {
 						evt.preventDefault();
 						return false;
 					}
 				}
 			}
 			return true;
-		}
+		};
 	}
 
 	go(path) {
