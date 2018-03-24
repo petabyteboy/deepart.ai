@@ -18,16 +18,19 @@ self.addEventListener('install', function (evt) {
 self.addEventListener('fetch', function (evt) {
 	evt.respondWith(fromCache(evt.request).then(function (match) {
 		if (match) {
-			let path = new URL(evt.request.url).pathname;
-			if (path.startsWith('/plan.json') || path.startsWith('/subs.json')) { evt.waitUntil(update(evt.request).then(refresh)); }
 			return match;
 		} else {
-			return evt.request.method === 'GET' ? fromNetworkAndCache(evt.request) : fromNetwork(evt.request);
+			if (evt.request.method === 'GET') {
+				console.log(evt.request);
+				return fetchAndCache(evt.request);
+			} else {
+				return fetch(evt.request);
+			}
 		}
 	}));
 });
 
-self.addEventListener('message', function (evt) {
+/*self.addEventListener('message', function (evt) {
 	let data = JSON.parse(evt.data);
 	if (data.type === 'prerender') {
 		evt.waitUntil(caches.open(CACHE).then(function (cache) {
@@ -40,7 +43,7 @@ self.addEventListener('message', function (evt) {
 	} else if (data.type === 'update') {
 		evt.waitUntil(update(evt.request).then(refresh));
 	}
-});
+});*/
 
 self.addEventListener('activate', function (event) {
 	event.waitUntil(caches.keys().then(function (cacheNames) {
@@ -52,25 +55,11 @@ self.addEventListener('activate', function (event) {
 	);
 });
 
-function fromNetwork (request) {
-	return new Promise(function (resolve, reject) {
-		var timeoutId = setTimeout(reject, 500);
-		fetch(request).then(function (response) {
-			clearTimeout(timeoutId);
-			resolve(response);
-		}, reject);
-	});
-}
-
-function fromNetworkAndCache (request) {
+function fetchAndCache(request) {
 	return caches.open(CACHE).then(function (cache) {
-		return new Promise(function (resolve, reject) {
-			var timeoutId = setTimeout(reject, 500);
-			fetch(request).then(function (response) {
-				cache.put(request, response.clone());
-				clearTimeout(timeoutId);
-				resolve(response);
-			}, reject);
+		return fetch(request).then(function (response) {
+			cache.put(request, response.clone());
+			return response;
 		});
 	});
 }
@@ -81,7 +70,7 @@ function fromCache (request) {
 	});
 }
 
-function update (request) {
+/*function update (request) {
 	return caches.open(CACHE).then(function (cache) {
 		return fetch(request).then(function (response) {
 			return cache.put(request, response.clone()).then(function () {
@@ -99,4 +88,4 @@ function refresh (response) {
 			});
 		});
 	});
-}
+}*/

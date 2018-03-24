@@ -1,5 +1,106 @@
+@import-normalize;
+
+/* source-code-pro-regular - latin */
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Source Code Pro'), local('SourceCodePro-Regular'),
+       url('/fonts/source-code-pro-v7-latin-regular.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('/fonts/source-code-pro-v7-latin-regular.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* source-code-pro-500 - latin */
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Source Code Pro Medium'), local('SourceCodePro-Medium'),
+       url('/fonts/source-code-pro-v7-latin-500.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('/fonts/source-code-pro-v7-latin-500.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
+/* source-code-pro-700 - latin */
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Source Code Pro Bold'), local('SourceCodePro-Bold'),
+       url('/fonts/source-code-pro-v7-latin-700.woff2') format('woff2'), /* Chrome 26+, Opera 23+, Firefox 39+ */
+       url('/fonts/source-code-pro-v7-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+}
+
 :root {
-	background-color: black;
+	font-family: 'Source Code Pro', monospace;
+	font-weight: 400;
+}
+
+body {
+	margin: 0;
+	background-color: #1a1919;
 	color: white;
 }
 
+.hidden {
+	display: none !important;
+}
+
+.spacer {
+	margin-top: 4vh;
+}
+
+.container {
+	max-width: 1080px;
+	margin: 0 auto;
+	padding: 0 1em;
+}
+
+a {
+	text-decoration-color: #f44336;
+	text-decoration: none;
+	color: white;
+}
+
+a h3 {
+	color: #f44336;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+.container.about {
+	text-align: center;
+}
+
+.container.about a {
+	margin: 0 1em;
+}
+
+section {
+	display: flex;
+	justify-content: center;
+}
+
+header {
+	background: rgba(255, 255, 255, .1);
+}
+
+header>.container {
+	display: flex;
+	align-items: center;
+}
+
+header svg {
+	padding: 1em;
+}
+
+header>svg * {
+	fill: white;
+}
+
+@media (max-width: 700px) {
+	section {
+		flex-direction: column;
+	}
+}

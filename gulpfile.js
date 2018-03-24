@@ -1,13 +1,13 @@
 const gulp = require('gulp');
 const pump = require('pump');
-const rimraf = require('rimraf');
-const rollupPluginBabel = require('rollup-plugin-babel');
 const rollupPluginUglify = require('rollup-plugin-uglify');
 const rollupPluginResolve = require('rollup-plugin-node-resolve');
 const rollup = require('rollup-stream');
 const loadGulpPlugins = require('gulp-load-plugins');
 const cleanCss = require('postcss-clean');
 const normalize = require('postcss-normalize');
+const importCss = require('postcss-import');
+const nested = require('postcss-nested');
 const autoprefixer = require('autoprefixer');
 const source = require('vinyl-source-stream');
 const { minify } = require('uglify-es');
@@ -15,16 +15,15 @@ const { execSync } = require('child_process');
 const { readFileSync } = require('fs');
 
 const gulpPlugins = loadGulpPlugins();
-const browsers = ['>1% in DE'];
+const browsers = ['>2% in DE'];
 
 function gitRevision () {
 	return execSync('git describe --tags --always --abbrev=7 --dirty', { cwd: __dirname }).toString().trim();
 }
 
-gulp.task('clean', (done) => {
-	rimraf.sync('tmp');
-	rimraf.sync('dist');
-	done();
+gulp.task('clean', (cb) => {
+	execSync('rm -rf dist/* dev/* tmp/*', { cwd: __dirname });
+	cb();
 });
 
 gulp.task('js', (cb) => {
@@ -34,25 +33,24 @@ gulp.task('js', (cb) => {
 			format: 'iife',
 			plugins: [
 				rollupPluginResolve(),
-				rollupPluginBabel({
-					babelrc: false,
-					presets: [
-						[
-							'env',
-							{
-								targets: { browsers: browsers },
-								modules: false
-							}
-						]
-					],
-					plugins: ['external-helpers']
-				}),
 				rollupPluginUglify({
-					toplevel: true
+					toplevel: true,
+					mangle: {
+						properties: {
+							builtins: false,
+							reserved: require('./node_modules/uglify-es/tools/domprops.json')
+						}
+					},
 				}, minify)
 			]
 		}),
 		source('main.js'),
+		gulpPlugins.replace('\n', ''),
+		gulpPlugins.replace('\\n', ''),
+		gulpPlugins.replace('\t', ''),
+		gulpPlugins.replace('\\t', ''),
+		gulpPlugins.replace('__GIT_REVISION', gitRevision()),
+		gulpPlugins.replace('__BUILD_DATE', new Date().valueOf()),
 		gulp.dest('dist')
 	], cb);
 });
@@ -69,7 +67,7 @@ gulp.task('sw', (cb) => {
 			]
 		}),
 		source('sw.js'),
-		gulpPlugins.replace('${BUILD_DATE}', new Date().valueOf()),
+		gulpPlugins.replace('__BUILD_DATE', new Date().valueOf()),
 		gulp.dest('dist')
 	], cb);
 });
@@ -78,10 +76,10 @@ gulp.task('css', (cb) => {
 	pump([
 		gulp.src('app/main.css'),
 		gulpPlugins.postcss([
-			autoprefixer({
+			normalize({
 				browsers: browsers
 			}),
-			normalize({
+			autoprefixer({
 				browsers: browsers
 			}),
 			cleanCss()
@@ -99,9 +97,8 @@ gulp.task('copy', (cb) => {
 
 gulp.task('html', (cb) => {
 	pump([
-		gulp.src('app/*.html'),
+		gulp.src('app/index.html'),
 		gulpPlugins.htmlmin({ collapseWhitespace: true }),
-		gulpPlugins.replace('${GIT_REVISION}', gitRevision()),
 		gulpPlugins.replace('${INLINE_CSS}', readFileSync('tmp/main.css')),
 		gulp.dest('dist')
 	], cb);
@@ -109,7 +106,7 @@ gulp.task('html', (cb) => {
 
 gulp.task('manifest', (cb) => {
 	pump([
-		gulp.src('app/*.json'),
+		gulp.src('app/manifest.json'),
 		gulpPlugins.jsonminify(),
 		gulp.dest('dist')
 	], cb);
@@ -118,10 +115,10 @@ gulp.task('manifest', (cb) => {
 gulp.task('dist', gulp.parallel('clean', 'copy', 'js', gulp.series('css', 'html'), 'manifest', 'sw'));
 
 gulp.task('watch', gulp.series('dist', () => {
-	gulp.watch('app/*.js', gulp.series('js', 'html', 'sw'));
-	gulp.watch('app/*.{css}', gulp.series('css', 'html', 'sw'));
-	gulp.watch('app/*.{html}', gulp.series('html', 'sw'));
-	gulp.watch('app/*.json', gulp.series('manifest', 'html', 'sw'));
+	gulp.watch('app/**/*.js', gulp.series('js', 'html', 'sw'));
+	gulp.watch('app/**/*.css', gulp.series('css', 'html', 'sw'));
+	gulp.watch('app/*.html', gulp.series('html', 'sw'));
+	gulp.watch('app/manifest.json', gulp.series('manifest', 'html', 'sw'));
 	gulp.watch('app/sw.js', gulp.series('html', 'sw'));
 }));
 

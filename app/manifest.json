@@ -1,14 +1,30 @@
 {
-	"name": "Clock",
-	"start_url": ".",
+	"name": "deepart.ai",
+	"short_name": "deepart.ai",
+	"start_url": "/",
 	"icons": [
 		{
-			"src": "favicon.png",
+			"src": "deepart.ai64.png",
+			"sizes": "64x64",
+			"type": "image\/png"
+		},
+		{
+			"src": "deepart.ai128.png",
+			"sizes": "128x128",
+			"type": "image\/png"
+		},
+		{
+			"src": "deepart.ai256.png",
+			"sizes": "256x256",
+			"type": "image\/png"
+		},
+		{
+			"src": "deepart.ai512.png",
 			"sizes": "512x512",
 			"type": "image\/png"
 		}
 	],
-	"theme_color": "#abcdef",
-	"background_color": "#abcdef",
+	"theme_color": "#1a1919",
+	"background_color": "#1a1919",
 	"display": "standalone"
 }
