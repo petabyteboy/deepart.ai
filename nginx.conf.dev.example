@@ -33,7 +33,7 @@ http {
 		}
 
 		location /api/ {
-			proxy_pass https://service/api/;
+			proxy_pass http://backend:8000/api/;
 		}
 	}
 }
