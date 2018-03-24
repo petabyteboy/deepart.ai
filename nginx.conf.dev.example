@@ -1,0 +1,40 @@
+worker_processes 1;
+
+events {
+	worker_connections 1024;
+}
+
+http {
+	charset UTF-8;
+	include mime.types;
+	default_type application/octet-stream;
+	sendfile on;
+	keepalive_timeout 65;
+	gzip on;
+	gzip_types text/plain text/xml text/css application/x-javascript application/json application/javascript;
+
+	access_log off;
+	log_not_found off;
+
+	server {
+		listen [::]:80 ipv6only=off;
+		return 301 https://$host$request_uri;
+	}
+
+	server {
+		listen 127.0.0.1:8080;
+
+		autoindex off;
+		index index.html;
+
+		location / {
+			root /usr/share/nginx/dist/;
+			try_files $uri $uri/ /index.html;
+		}
+
+		location /api/ {
+			proxy_pass https://foo.bar/api/;
+		}
+	}
+}
+

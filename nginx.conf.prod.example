@@ -1,0 +1,60 @@
+worker_processes 1;
+
+events {
+	worker_connections 1024;
+}
+
+http {
+	charset UTF-8;
+	include mime.types;
+	default_type application/octet-stream;
+	sendfile on;
+	keepalive_timeout 65;
+	gzip on;
+	gzip_types text/plain text/xml text/css application/x-javascript application/json application/javascript;
+
+	ssl_dhparam /etc/ssl/dhparams.pem;
+	ssl_session_cache shared:SSL:10m;
+	ssl_session_timeout 10m;
+	ssl_session_tickets off;
+	ssl_prefer_server_ciphers on;
+	ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
+	ssl_ecdh_curve secp384r1;
+	resolver 8.8.8.8 8.8.4.4 valid=300s;
+	resolver_timeout 5s;
+
+	access_log off;
+	log_not_found off;
+
+	server {
+		listen [::]:80 ipv6only=off;
+		return 301 https://$host$request_uri;
+	}
+
+	server {
+		listen [::]:443 ssl http2 ipv6only=off;
+		server_name foo.bar;
+
+		ssl on;
+		ssl_certificate /etc/letsencrypt/live/foo.bar/fullchain.pem;
+		ssl_certificate_key /etc/letsencrypt/live/foo.bar/privkey.pem;
+		ssl_trusted_certificate /etc/letsencrypt/live/foo.bar/fullchain.pem;
+
+		add_header Strict-Transport-Security "max-age=63072000; preload; includeSubDomains";
+
+		root /srv/http/404;
+		autoindex off;
+		index index.html;
+
+		location / {
+			root /usr/share/nginx/dist/;
+			try_files $uri $uri/ /index.html;
+			http2_push "/main.js";
+		}
+
+		location /api/ {
+			proxy_pass https://foo.bar/api/;
+		}
+	}
+}
+
