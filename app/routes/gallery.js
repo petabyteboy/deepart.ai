@@ -1,31 +1,36 @@
 'use strict';
 
 import { render } from 'lit-html';
-import { api } from '../api';
 import { tag, cssClass, selAll, id, sleep } from '../util';
 import { gallery as galleryTemplate } from '../templates';
 
 export const gallery = async () => {
+	const apiUri = 'http://127.0.0.1:5000/api/';
+
+	const get = (path) => fetch(apiUri + path, {cache: "no-store"});
+
 	let nnId = '';
 	let images = [];
 	let data = {};
 	let j = 0;
-	for (let i = 0; i < 25; i++) {
-		images.push({
-			id: j++,
-			url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAq0lEQVQ4T2NkQAKr11s4/Gdg2o8sRojNSFUD1q83EPjNwPWekK3I8iguAEmsWmf5gIGRUZ5YQzAMWLneqgEoWE+2AQYM/QJ58zZd5RH8KUWMIRguABlQtX61AsP//weAXuEnZAiGATAN4AD9z7WAgZHBH6ch//9/xGkATNPK9ZYBQEUODP8ZDIAusge67CFQDhjQ/xewMvzYQNAAsr1ASCNMftQFDMBYphAAAJVKLC5aXnWRAAAAAElFTkSuQmCC'
-		});
-	}
+
 
 	const nextSet = async (selected) => {
+		render(galleryTemplate(images, true), tag('main'));
 		images = [];
 
-		if (selected !== undefined) await fetch('/api/answer/' + nnId + '/' + selected).then(resp => resp.json());
-		do {
-			newId = await fetch('/api/get_latest_id').then(resp => resp.text());
-			await sleep(50);
-		} while (newId === nnId);
-		data = await fetch('/api/get_latest_data').then(resp => resp.json());
+		let newId;
+		if (selected !== undefined) {
+			await get('answer/' + nnId + '/' + selected);
+			do {
+				newId = await get('get_latest_id').then(resp => resp.text());
+				await sleep(200);
+			} while (newId === nnId);
+			nnId = newId;
+		} else {
+			nnId = await get('get_latest_id').then(resp => resp.text());
+		}
+		data = await get('get_latest_data').then(resp => resp.json());
 
 		j = 0;
 		let size = 128;
@@ -48,8 +53,23 @@ export const gallery = async () => {
 				ctx.beginPath();
 				if (obj['radius']) {
 					let radius = obj['radius'] * size;
-					ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+					if (radius < 0) {
+						console.warn('oops, radius was < 0: ' + radius);
+					} else {
+						ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+					}
 				} else {
+					let second = obj['points'][0];
+					let x2 = second['x'] * size;
+					let y2 = second['y'] * size;
+					let r2 = Math.round(second['r']*255);
+					let g2 = Math.round(second['g']*255);
+					let b2 = Math.round(second['b']*255);
+					let grd = ctx.createLinearGradient(x, y, x2, y2);
+					grd.addColorStop(0, `rgba(${r}, ${g}, ${b}, 1)`);
+					grd.addColorStop(1, `rgba(${r2}, ${g2}, ${b2}, 1)`);
+					ctx.fillStyle = grd;
+					console.log(obj['points'].length);
 					obj['points'].forEach((point) => {
 						ctx.lineTo(point['x'] * size, point['y'] * size);
 					});
@@ -58,15 +78,13 @@ export const gallery = async () => {
 				ctx.fill();
 			});
 			images.push({
-				id: index++,
+				id: index,
 				url: canvas.toDataURL("image/png")
 			});
 		});
 
 		render(galleryTemplate(images), tag('main'));
 	}
-
-	render(galleryTemplate(images), tag('main'));
 
 	await nextSet();
 
@@ -75,8 +93,11 @@ export const gallery = async () => {
 	cssClass('grid').onclick = (evt) => {
 		if (evt.target.tagName !== 'IMG') return;
 		let id = evt.target.getAttribute('data-id');
-		images[id].selected = ++i;
+		/*images[id].selected = ++i;
 		render(galleryTemplate(images), tag('main'));
+		i = 0;
+		let selectedId = images.filter(i => i.selected === 1)[0].id;*/
+		nextSet(id);
 	};
 
 	id('next').onclick = () => {

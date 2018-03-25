@@ -93,7 +93,7 @@ gulp.task('css', (cb) => {
 
 gulp.task('copy', (cb) => {
 	pump([
-		gulp.src(['app/**', '!app/*.{html,css,js}', '!app/manifest.json'], { dot: true }),
+		gulp.src(['app/**', '!app/**/*.{html,css,js}', '!app/manifest.json'], { dot: true }),
 		gulp.dest('dist')
 	], cb);
 });

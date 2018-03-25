@@ -2,7 +2,7 @@
 
 import { html } from 'lit-html';
 
-export const gallery = (images) => html`
+export const gallery = (images, loading) => html`
 	<div class="container gallery">
 		<div class="grid">
 			${images.map(image => html`
@@ -17,6 +17,11 @@ export const gallery = (images) => html`
 			`)}
 		</div>
 	</div>
+	${loading ? html`
+		<div class="loading">
+			<div class="spinner"></div>
+		</div>
+	` : ''}
 	<div class="nav">
 		<div class="container">
 			<span>Select the images you like most</span>

@@ -12,6 +12,7 @@ let preCache = [
 const CACHE = 'cache-${BUILD_DATE}';
 
 self.addEventListener('install', function (evt) {
+	self.skipWaiting();
 	evt.waitUntil(caches.open(CACHE).then(function (cache) {
 		cache.addAll(preCache);
 	}));
@@ -22,7 +23,7 @@ self.addEventListener('fetch', function (evt) {
 		if (match) {
 			return match;
 		} else {
-			if (evt.request.method === 'GET') {
+			if (evt.request.method === 'GET' && !evt.request.url.includes('/api/')) {
 				return fetchAndCache(evt.request);
 			} else {
 				return fetch(evt.request);
@@ -34,11 +35,9 @@ self.addEventListener('fetch', function (evt) {
 self.addEventListener('activate', function (event) {
 	event.waitUntil(caches.keys().then(function (cacheNames) {
 		return Promise.all(cacheNames.filter(c => c !== CACHE).map(c => caches.delete(c)));
-	})
-		/* .then(function() {
-		    return self.clients.claim();
-		  }) */
-	);
+	}).then(function() {
+		return self.clients.claim();
+	}));
 });
 
 function fetchAndCache(request) {
