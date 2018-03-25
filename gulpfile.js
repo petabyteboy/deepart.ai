@@ -38,7 +38,10 @@ gulp.task('js', (cb) => {
 					mangle: {
 						properties: {
 							builtins: false,
-							reserved: require('./node_modules/uglify-es/tools/domprops.json')
+							reserved: require('./node_modules/uglify-es/tools/domprops.json').concat([
+								'objects', 'points', 'radius'
+							]),
+							keep_quoted: true
 						}
 					},
 				}, minify)
@@ -90,7 +93,7 @@ gulp.task('css', (cb) => {
 
 gulp.task('copy', (cb) => {
 	pump([
-		gulp.src(['app/**', '!app/*.{html,css,js,json}'], { dot: true }),
+		gulp.src(['app/**', '!app/*.{html,css,js}', '!app/manifest.json'], { dot: true }),
 		gulp.dest('dist')
 	], cb);
 });

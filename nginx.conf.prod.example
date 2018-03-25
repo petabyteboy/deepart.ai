@@ -41,6 +41,7 @@ http {
 		ssl_trusted_certificate /etc/letsencrypt/live/foo.bar/fullchain.pem;
 
 		add_header Strict-Transport-Security "max-age=63072000; preload; includeSubDomains";
+		add_header Cache-Control "max-age=604800";
 
 		root /srv/http/404;
 		autoindex off;

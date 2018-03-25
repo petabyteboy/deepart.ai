@@ -3,7 +3,7 @@
 import { html } from 'lit-html';
 
 export const header = () => html`
-	<div class="container">
+	<a href="/" class="container">
 		<svg
 			 viewBox="0 0 12.7 12.7"
 			 height="48"
@@ -29,5 +29,5 @@ export const header = () => html`
 			</g>
 		</svg>
 		<h1>deepart.ai</h1>
-	</div>
+	</a>
 `;

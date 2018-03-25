@@ -1,10 +1,12 @@
 'use strict';
 
 let preCache = [
-	'./',
-	'./favicon.png',
-	'./main.js',
-	'./manifest.json'
+	'/',
+	'/main.js',
+	'/manifest.json',
+	'/fonts/source-code-pro-v7-latin-regular.woff2',
+	'/fonts/source-code-pro-v7-latin-500.woff2',
+	'/fonts/source-code-pro-v7-latin-700.woff2'
 ];
 
 const CACHE = 'cache-${BUILD_DATE}';
@@ -21,7 +23,6 @@ self.addEventListener('fetch', function (evt) {
 			return match;
 		} else {
 			if (evt.request.method === 'GET') {
-				console.log(evt.request);
 				return fetchAndCache(evt.request);
 			} else {
 				return fetch(evt.request);
@@ -29,21 +30,6 @@ self.addEventListener('fetch', function (evt) {
 		}
 	}));
 });
-
-/*self.addEventListener('message', function (evt) {
-	let data = JSON.parse(evt.data);
-	if (data.type === 'prerender') {
-		evt.waitUntil(caches.open(CACHE).then(function (cache) {
-			return cache.put('/', new Response(data.content, {
-				headers: {
-					'Content-Type': 'text/html; charset=UTF-8'
-				}
-			}));
-		}));
-	} else if (data.type === 'update') {
-		evt.waitUntil(update(evt.request).then(refresh));
-	}
-});*/
 
 self.addEventListener('activate', function (event) {
 	event.waitUntil(caches.keys().then(function (cacheNames) {
@@ -70,22 +56,3 @@ function fromCache (request) {
 	});
 }
 
-/*function update (request) {
-	return caches.open(CACHE).then(function (cache) {
-		return fetch(request).then(function (response) {
-			return cache.put(request, response.clone()).then(function () {
-				return response;
-			});
-		});
-	});
-}
-
-function refresh (response) {
-	return response.text().then(function (text) {
-		return self.clients.matchAll().then(function (clients) {
-			clients.forEach(function (client) {
-				client.postMessage(text);
-			});
-		});
-	});
-}*/

@@ -9,12 +9,10 @@ class Router {
 		};
 
 		document.onclick = (evt) => {
-			if (evt.path) {
-				for (let el of evt.path) {
-					if (el.href && el.href.startsWith(window.location.origin) && this.go(el.pathname)) {
-						evt.preventDefault();
-						return false;
-					}
+			for (let el of evt['composedPath']()) {
+				if (el.href && el.href.startsWith(window.location.origin) && this.go(el.pathname)) {
+					evt.preventDefault();
+					return false;
 				}
 			}
 			return true;
@@ -28,6 +26,7 @@ class Router {
 
 		history.pushState({}, '', path);
 
+		let self = this;
 		// returns a promise, which is truthy
 		return (async () => {
 			for (let { route, match } of routes) {
