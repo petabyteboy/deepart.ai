@@ -32,8 +32,8 @@ http {
 			try_files $uri $uri/ /index.html;
 		}
 
-		location /api/ {
-			proxy_pass http://backend:5000/api/;
+		location /api {
+			proxy_pass http://backend:5000/api;
 		}
 	}
 }
