@@ -24,7 +24,7 @@ export const gallery = (images, loading) => html`
 	` : ''}
 	<div class="nav">
 		<div class="container">
-			<span>Select the images you like most</span>
+			<span>Select the image you like most</span>
 			<a id="next">next &rarr;</a>
 		</div>
 	</div>
