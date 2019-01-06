@@ -1,7 +1,7 @@
 'use strict';
 
 import { route, go } from './router.js';
-import { tag } from '../util.js';
+import { tag } from './util.js';
 import { html, render } from './lit-html.js';
 
 import { aboutRoute } from './routes/about.js';
