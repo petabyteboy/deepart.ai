@@ -11,17 +11,19 @@ canvas.width = size;
 
 const galleryTemplate = (images, loading) => html`
 	<div class="container gallery">
-		<div class="grid">
-			${images.map(image => html`
-				<div class="image">
-					<img data-id="${image.id}" src="${image.url}">
-					${image.selected ? html`
-						<div class="selected">
-							<span>${image.selected}</span>
-						</div>
-					` : ''}
-				</div>
-			`)}
+		<div class="grid-container">
+			<div class="grid">
+				${images.map(image => html`
+					<div class="image">
+						<img data-id="${image.id}" src="${image.url}">
+						${image.selected ? html`
+							<div class="selected">
+								<span>${image.selected}</span>
+							</div>
+						` : ''}
+					</div>
+				`)}
+			</div>
 		</div>
 	</div>
 	${loading ? html`
