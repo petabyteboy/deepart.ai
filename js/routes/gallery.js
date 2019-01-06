@@ -67,7 +67,6 @@ const renderImage = (artwork) => {
 			grd.addColorStop(0, `rgba(${r}, ${g}, ${b}, 1)`);
 			grd.addColorStop(1, `rgba(${r2}, ${g2}, ${b2}, 1)`);
 			ctx.fillStyle = grd;
-			console.log(obj['points'].length);
 			obj['points'].forEach((point) => {
 				ctx.lineTo(point['x'] * size, point['y'] * size);
 			});
