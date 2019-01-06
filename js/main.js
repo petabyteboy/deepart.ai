@@ -1,9 +1,16 @@
 'use strict';
 
-import { html } from 'lit-html';
+import { route, go } from './router.js';
+import { tag } from '../util.js';
+import { html, render } from './lit-html.js';
 
-export const header = () => html`
-	<a href="/" class="container">
+import { aboutRoute } from './routes/about.js';
+import { feedRoute } from './routes/feed.js';
+import { galleryRoute } from './routes/gallery.js';
+import { notfoundRoute } from './routes/notfound.js';
+
+export const headerTemplate = () => html`
+	<a href="#/" class="container">
 		<svg
 			 viewBox="0 0 12.7 12.7"
 			 height="48"
@@ -31,3 +38,19 @@ export const header = () => html`
 		<h1>deepart.ai</h1>
 	</a>
 `;
+render(headerTemplate(), tag('header'));
+
+route(/^\/$/, aboutRoute);
+route(/^\/feed$/, feedRoute);
+route(/^\/gallery$/, galleryRoute);
+route(/^.*$/, notfoundRoute);
+
+if (!window.location.hash.length) go('/');
+
+const sw = navigator.serviceWorker;
+if (sw) {
+	sw.register('/sw.js', {
+		scope: '/'
+	});
+}
+
