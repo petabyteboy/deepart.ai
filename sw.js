@@ -1,12 +1,13 @@
 'use strict';
 
-const CACHE = 'cache-v34';
+const CACHE = 'cache-v50';
 
 let preCache = [
 	'./',
 	'./js/',
 	'./js/lit-html.js',
 	'./js/main.js',
+	'./js/ai.js',
 	'./js/router.js',
 	'./js/sw.js',
 	'./js/util.js',
@@ -27,7 +28,8 @@ let preCache = [
 	'./fonts/source-code-pro-v7-latin-700.woff2',
 	'./fonts/source-code-pro-v7-latin-regular.woff',
 	'./fonts/source-code-pro-v7-latin-regular.woff2',
-	'./manifest.json'
+	'./manifest.json',
+	'./main.css'
 ];
 
 self.addEventListener('install', function (evt) {

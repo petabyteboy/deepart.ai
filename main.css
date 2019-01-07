@@ -36,9 +36,9 @@
 }
 
 body {
-	overflow: hidden;
+	overflow-x: hidden;
 	user-select: none;
-	height: 100%;
+	min-height: 100vh;
 	margin: 0;
 	background-color: #1a1919;
 	color: white;
@@ -63,7 +63,7 @@ main {
 }
 
 .container {
-	max-width: 1080px;
+	max-width: 850px;
 	width: 100%;
 	box-sizing: border-box;
 	margin: 0 auto;
@@ -121,6 +121,7 @@ header>svg * {
 	padding: 0;
 	display: flex;
 	align-items: center;
+	overflow: hidden;
 }
 
 .container.gallery>.grid-container {
