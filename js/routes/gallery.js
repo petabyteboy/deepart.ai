@@ -2,6 +2,7 @@
 
 import { html, render } from '../lit-html.js';
 import { tag, cssClass, selAll, id, sleep } from '../util.js';
+import { next } from '../ai.js';
 
 const size = 128;
 const canvas = document.createElement('canvas');
@@ -39,9 +40,9 @@ const galleryTemplate = (images, loading) => html`
 	</div>
 `;
 
-const renderImage = (artwork) => {
+const renderImage = (objects) => {
 	ctx.clearRect(0, 0, size, size);
-	artwork['objects'].forEach((obj) => {
+	objects.objects.forEach((obj) => {
 		let first = obj['points'].shift();
 		let x = first['x'] * size;
 		let y = first['y'] * size;
@@ -80,48 +81,28 @@ const renderImage = (artwork) => {
 };
 
 export const galleryRoute = async () => {
-	const apiUri = '/api/';
+	let data = next();
 
-	const get = (path) => fetch(apiUri + path, {cache: "no-store"});
-
-	let nnId = '';
-	let data = {};
-
-	const nextSet = async (selected) => {
+	const nextSet = (selected) => {
 		render(galleryTemplate([], true), tag('main'));
 
-		let newId;
-		if (selected !== undefined) {
-			await get('answer/' + nnId + '/' + selected);
-			do {
-				newId = await get('get_latest_id').then(resp => resp.text());
-				await sleep(200);
-			} while (newId === nnId);
-			nnId = newId;
-		} else {
-			nnId = await get('get_latest_id').then(resp => resp.text());
-		}
-		data = await get('get_latest_data').then(resp => resp.json());
+		data = next(data[selected || 0].clone());
+
 		let images = Object.keys(data).map(index => {
 			return {
 				id: index,
-				url: renderImage(data[index])
+				url: renderImage(data[index].clone())
 			};
 		});
+
 		render(galleryTemplate(images), tag('main'));
 	};
 
-	await nextSet();
-
-	let i = 0;
+	nextSet();
 
 	cssClass('grid').onclick = (evt) => {
 		if (evt.target.tagName !== 'IMG') return;
 		let id = evt.target.getAttribute('data-id');
-		/*images[id].selected = ++i;
-		render(galleryTemplate(images), tag('main'));
-		i = 0;
-		let selectedId = images.filter(i => i.selected === 1)[0].id;*/
 		nextSet(id);
 	};
 
